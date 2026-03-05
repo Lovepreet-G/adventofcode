@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="inputForm">
+    <div id="output"></div>
+    <input type="file" id="fileInput" accept=".txt">
+    <button type="button" id="loadFile">Load File</button>
+    
+    
+    </form>
+    <script>
+        document.getElementById('loadFile').addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                const lines = content.trim().split('\n');
+                const reports = lines.map(line => line.split(' ').map(Number));
+
+                const isSafe = (report) => {
+                    const diffs = [];
+                    for (let i = 1; i < report.length; i++) {
+                        diffs.push(report[i] - report[i-1]);
+                    }
+                    
+                    const allIncreasing = diffs.every(d => d > 0 && d <= 3);
+                    const allDecreasing = diffs.every(d => d < 0 && d >= -3);
+                    
+                    return allIncreasing || allDecreasing;
+                };
+
+                const safeCount = reports.filter(isSafe).length;
+                const isSafeWithRemoval = (report) => {
+                    if (isSafe(report)) return true;
+                    for (let i = 0; i < report.length; i++) {
+                        const modified = report.slice(0, i).concat(report.slice(i + 1));
+                        if (isSafe(modified)) return true;
+                    }
+                    return false;
+                };
+
+                const safeWithRemovalCount = reports.filter(isSafeWithRemoval).length;
+                console.log('Safe reports (original):', safeCount);
+                console.log('Safe reports (with removal):', safeWithRemovalCount);
+                document.getElementById('output').textContent = 'Safe reports (original): ' + safeCount + ' | Safe reports (with removal): ' + safeWithRemovalCount;
+                
+            };
+                reader.readAsText(file);
+            } else {
+                alert('Please select a file first.');
+            }
+        });
+    </script>
+
+    
+    
+</body>
+</html>
